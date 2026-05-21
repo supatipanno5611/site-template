@@ -13,8 +13,7 @@ import styles from './Search.module.css'
 export default function Search() {
   const pathname = usePathname()
   const isTopicRoute = pathname.startsWith('/topics')
-  const isPeopleRoute = pathname.startsWith('/people')
-  const isLocalSearchRoute = isTopicRoute || isPeopleRoute
+  const isLocalSearchRoute = isTopicRoute
   const visible = useHideOnScroll()
   const [open, setOpen] = useState(false)
   const [initialQuery, setInitialQuery] = useState<string | undefined>()

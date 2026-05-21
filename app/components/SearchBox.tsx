@@ -11,9 +11,7 @@ import {
   MAX_RESULTS,
   SEARCH_FIELDS,
   searchDocs,
-  searchPeople,
   searchTopics,
-  type PeopleResult,
   type SearchResult,
   type TopicResult,
 } from '@/lib/searchIndex'
@@ -22,14 +20,13 @@ import SearchResults from './SearchResults'
 import { BackIcon, SearchIcon, XIcon } from './icons'
 import styles from './SearchBox.module.css'
 
-type Filter = 'all' | 'title' | 'body' | 'topics' | 'people'
+type Filter = 'all' | 'title' | 'body' | 'topics'
 
 const FILTER_OPTIONS: { key: Filter; label: string }[] = [
   { key: 'all', label: uiText.search.filters.all },
   { key: 'title', label: uiText.search.filters.title },
   { key: 'body', label: uiText.search.filters.body },
   { key: 'topics', label: uiText.search.filters.topics },
-  { key: 'people', label: uiText.search.filters.people },
 ]
 
 const FILTER_FIELDS: Record<Filter, string[] | undefined> = {
@@ -37,7 +34,6 @@ const FILTER_FIELDS: Record<Filter, string[] | undefined> = {
   title: [...SEARCH_FIELDS.title],
   body: [...SEARCH_FIELDS.body],
   topics: undefined,
-  people: undefined,
 }
 
 const RESULTS_ID = 'global-search-results'
@@ -63,7 +59,6 @@ export default function SearchBox({ overlayMode = false, onClose, initialQuery }
   const [query, setQuery] = useState(initialQuery ?? '')
   const [results, setResults] = useState<SearchResult[]>([])
   const [topicResults, setTopicResults] = useState<TopicResult[]>([])
-  const [peopleResults, setPeopleResults] = useState<PeopleResult[]>([])
   const [activeIndex, setActiveIndex] = useState(-1)
   const [filter, setFilter] = useState<Filter>('all')
   const [focused, setFocused] = useState(false)
@@ -90,7 +85,6 @@ export default function SearchBox({ overlayMode = false, onClose, initialQuery }
   const resetResults = useCallback(() => {
     setResults([])
     setTopicResults([])
-    setPeopleResults([])
     setActiveIndex(-1)
     setHasMoreResults(false)
   }, [])
@@ -100,7 +94,6 @@ export default function SearchBox({ overlayMode = false, onClose, initialQuery }
 
     if (f === 'topics') {
       setResults([])
-      setPeopleResults([])
       setHasMoreResults(false)
       const res = searchTopics(q)
       setTopicResults(res)
@@ -108,18 +101,7 @@ export default function SearchBox({ overlayMode = false, onClose, initialQuery }
       return
     }
 
-    if (f === 'people') {
-      setResults([])
-      setTopicResults([])
-      setHasMoreResults(false)
-      const res = searchPeople(q)
-      setPeopleResults(res)
-      setActiveIndex(res.length > 0 ? 0 : -1)
-      return
-    }
-
     setTopicResults([])
-    setPeopleResults([])
     const res = searchDocs(q, FILTER_FIELDS[f], MAX_RESULTS + 1)
     const visibleResults = res.slice(0, MAX_RESULTS)
     setResults(visibleResults)
@@ -202,10 +184,9 @@ export default function SearchBox({ overlayMode = false, onClose, initialQuery }
 
   const handleFilterChange = (f: Filter) => {
     setFilter(f)
-    if (f === 'topics' || f === 'people') setResults([])
+    if (f === 'topics') setResults([])
     else {
       setTopicResults([])
-      setPeopleResults([])
     }
     if (queryRef.current.trim()) doSearch(queryRef.current, f)
   }
@@ -213,9 +194,7 @@ export default function SearchBox({ overlayMode = false, onClose, initialQuery }
   const activeListLength =
     filter === 'topics'
       ? topicResults.length + 1
-      : filter === 'people'
-        ? peopleResults.length + 1
-        : results.length + (hasMoreResults ? 1 : 0)
+      : results.length + (hasMoreResults ? 1 : 0)
 
   const rotateFilter = (dir: 1 | -1) => {
     setFilter((f) => {
@@ -249,14 +228,6 @@ export default function SearchBox({ overlayMode = false, onClose, initialQuery }
           close()
         } else {
           router.push('/topics/search')
-          close()
-        }
-      } else if (filter === 'people') {
-        if (peopleResults[idx]) {
-          router.push(peopleResults[idx].url)
-          close()
-        } else {
-          router.push('/people')
           close()
         }
       } else if (results[idx]) {
@@ -367,7 +338,6 @@ export default function SearchBox({ overlayMode = false, onClose, initialQuery }
               hasQuery={hasQuery}
               results={results}
               topicResults={topicResults}
-              peopleResults={peopleResults}
               activeIndex={activeIndex}
               hasMoreResults={hasMoreResults}
               loading={loading}

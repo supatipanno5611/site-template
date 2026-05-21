@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { getHighlightedSnippets, highlight } from '@/lib/highlight'
-import type { PeopleResult, SearchResult, TopicResult } from '@/lib/searchIndex'
+import type { SearchResult, TopicResult } from '@/lib/searchIndex'
 import { uiText } from '@/lib/ui-text'
 import styles from './SearchBox.module.css'
 
@@ -30,7 +30,6 @@ type Props = {
   hasQuery: boolean
   results: SearchResult[]
   topicResults: TopicResult[]
-  peopleResults: PeopleResult[]
   activeIndex: number
   hasMoreResults: boolean
   loading: boolean
@@ -49,7 +48,6 @@ export default function SearchResults({
   hasQuery,
   results,
   topicResults,
-  peopleResults,
   activeIndex,
   hasMoreResults,
   loading,
@@ -114,41 +112,6 @@ export default function SearchResults({
           >
             <Link href="/topics/search" onClick={onClose} className={styles.gotoTopicSearch}>
               {uiText.topic.browse}
-            </Link>
-          </li>
-        </>
-      ) : filter === 'people' ? (
-        <>
-          {hasQuery &&
-            peopleResults.map((result, i) => {
-              const isActive = i === activeIndex
-              return (
-                <li
-                  key={result.name}
-                  id={`${resultsId}-option-${i}`}
-                  ref={isActive ? activeItemRef : null}
-                  className={isActive ? styles.active : undefined}
-                  role="option"
-                  aria-selected={isActive}
-                  onMouseEnter={() => onActiveChange(i)}
-                >
-                  <Link href={result.url} onClick={onClose}>
-                    <span className={styles.title}>{highlight(result.name, query, styles.mark)}</span>
-                    <span className={styles.topicCount}>{uiText.common.postCount(result.count)}</span>
-                  </Link>
-                </li>
-              )
-            })}
-          <li
-            id={`${resultsId}-option-${peopleResults.length}`}
-            ref={peopleResults.length === activeIndex ? activeItemRef : null}
-            className={peopleResults.length === activeIndex ? styles.active : undefined}
-            role="option"
-            aria-selected={peopleResults.length === activeIndex}
-            onMouseEnter={() => onActiveChange(peopleResults.length)}
-          >
-            <Link href="/people" onClick={onClose} className={styles.gotoTopicSearch}>
-              {uiText.people.browse}
             </Link>
           </li>
         </>

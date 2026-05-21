@@ -9,7 +9,6 @@ export type SearchResult = SearchDoc & {
 }
 
 export type TopicResult = { name: string; count: number; url: string }
-export type PeopleResult = { name: string; count: number; url: string }
 
 export const MAX_RESULTS = 6
 
@@ -85,22 +84,4 @@ export function searchTopics(query: string): TopicResult[] {
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .slice(0, MAX_RESULTS)
     .map(([name, count]) => ({ name, count, url: `/topics/${encodeURIComponent(name)}` }))
-}
-
-export function searchPeople(query: string): PeopleResult[] {
-  if (!docsCache) return []
-
-  const counts = new Map<string, number>()
-  for (const doc of docsCache) {
-    for (const person of doc.people) {
-      counts.set(person, (counts.get(person) ?? 0) + 1)
-    }
-  }
-
-  const normalizedQuery = query.toLowerCase().trim()
-  return Array.from(counts.entries())
-    .filter(([name]) => name.toLowerCase().includes(normalizedQuery))
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, MAX_RESULTS)
-    .map(([name, count]) => ({ name, count, url: `/people/${encodeURIComponent(name)}` }))
 }

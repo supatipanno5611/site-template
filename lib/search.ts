@@ -1,6 +1,5 @@
 import { posts } from '#site/content'
 import { isHomeLinkPagePath } from '@/lib/home-link-pages'
-import { getPostPeople } from '@/lib/people'
 import { siteConfig } from '@/site.config'
 
 export type SearchDoc = {
@@ -11,7 +10,6 @@ export type SearchDoc = {
   topics: string
   audioTitle: string
   tags: string[]
-  people: string[]
 }
 
 export function getSearchDocs(): SearchDoc[] {
@@ -27,7 +25,6 @@ export function getSearchDocs(): SearchDoc[] {
         topics: p.topics.join(' '),
         audioTitle,
         tags: p.topics,
-        people: getPostPeople(p),
       }
     })
 }

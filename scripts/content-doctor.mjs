@@ -109,12 +109,6 @@ function yamlScalar(value) {
   return JSON.stringify(value)
 }
 
-function appendStringList(lines, key, values) {
-  if (!Array.isArray(values) || values.length === 0) return
-  lines.push(`${key}:`)
-  for (const value of values) lines.push(`  - ${yamlScalar(value)}`)
-}
-
 function stringifyFrontmatter(data) {
   const lines = []
   if (data.draft !== undefined) lines.push(`draft: ${data.draft}`)
@@ -124,10 +118,6 @@ function stringifyFrontmatter(data) {
     lines.push('topics:')
     for (const topic of data.topics) lines.push(`  - ${topic}`)
   }
-  appendStringList(lines, 'teacher', data.teacher)
-  appendStringList(lines, 'translator', data.translator)
-  appendStringList(lines, 'writer', data.writer)
-  appendStringList(lines, 'questioner', data.questioner)
   if (data.youtubeId) lines.push(`youtubeId: ${yamlScalar(data.youtubeId)}`)
   if (data.audioSrc) lines.push(`audioSrc: ${yamlScalar(data.audioSrc)}`)
   if (data.audioTitle) lines.push(`audioTitle: ${yamlScalar(data.audioTitle)}`)

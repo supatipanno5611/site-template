@@ -49,12 +49,6 @@ export default async function PostPage({ params }: Props) {
   const backlinks = posts
     .filter((p) => !p.draft && p.slugAsParams !== post.slugAsParams && p.wikiLinks.includes(post.slugAsParams))
     .slice(0, 5)
-  const personFields = [
-    { label: uiText.postFooter.teacher, values: post.teacher },
-    { label: uiText.postFooter.translator, values: post.translator },
-    { label: uiText.postFooter.writer, values: post.writer },
-    { label: uiText.postFooter.questioner, values: post.questioner },
-  ].filter((field) => field.values.length > 0)
   const enableHeadingAnchors = !post.youtubeId && !post.audioSrc
   const showChapterMenu = Boolean(post.youtubeId || post.audioSrc)
   const tocItems = enableHeadingAnchors ? extractTocItems(post.body) : []
@@ -78,18 +72,6 @@ export default async function PostPage({ params }: Props) {
                 <dt>{uiText.postFooter.title}</dt>
                 <dd className={styles.footerTitle}>{post.title}</dd>
               </div>
-              {personFields.map((field) => (
-                <div key={field.label} className={styles.personRow}>
-                  <dt>{field.label}</dt>
-                  <dd className={styles.personLinks}>
-                    {field.values.map((value) => (
-                      <a key={value} href={`/people/${encodeURIComponent(value)}`} className={styles.personLink}>
-                        {value}
-                      </a>
-                    ))}
-                  </dd>
-                </div>
-              ))}
             </dl>
           </div>
           {post.audioTitle && (
