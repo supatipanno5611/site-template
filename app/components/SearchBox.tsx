@@ -22,13 +22,13 @@ import SearchResults from './SearchResults'
 import { BackIcon, SearchIcon, XIcon } from './icons'
 import styles from './SearchBox.module.css'
 
-type Filter = 'all' | 'title' | 'body' | 'base' | 'people'
+type Filter = 'all' | 'title' | 'body' | 'topics' | 'people'
 
 const FILTER_OPTIONS: { key: Filter; label: string }[] = [
   { key: 'all', label: uiText.search.filters.all },
   { key: 'title', label: uiText.search.filters.title },
   { key: 'body', label: uiText.search.filters.body },
-  { key: 'base', label: uiText.search.filters.base },
+  { key: 'topics', label: uiText.search.filters.topics },
   { key: 'people', label: uiText.search.filters.people },
 ]
 
@@ -36,7 +36,7 @@ const FILTER_FIELDS: Record<Filter, string[] | undefined> = {
   all: [...SEARCH_FIELDS.all],
   title: [...SEARCH_FIELDS.title],
   body: [...SEARCH_FIELDS.body],
-  base: undefined,
+  topics: undefined,
   people: undefined,
 }
 
@@ -98,7 +98,7 @@ export default function SearchBox({ overlayMode = false, onClose, initialQuery }
   const doSearch = useCallback((q: string, f: Filter) => {
     if (!isIndexReady() || !q.trim()) return
 
-    if (f === 'base') {
+    if (f === 'topics') {
       setResults([])
       setPeopleResults([])
       setHasMoreResults(false)
@@ -202,7 +202,7 @@ export default function SearchBox({ overlayMode = false, onClose, initialQuery }
 
   const handleFilterChange = (f: Filter) => {
     setFilter(f)
-    if (f === 'base' || f === 'people') setResults([])
+    if (f === 'topics' || f === 'people') setResults([])
     else {
       setTopicResults([])
       setPeopleResults([])
@@ -211,7 +211,7 @@ export default function SearchBox({ overlayMode = false, onClose, initialQuery }
   }
 
   const activeListLength =
-    filter === 'base'
+    filter === 'topics'
       ? topicResults.length + 1
       : filter === 'people'
         ? peopleResults.length + 1
@@ -243,7 +243,7 @@ export default function SearchBox({ overlayMode = false, onClose, initialQuery }
       e.preventDefault()
       const idx = activeIndex >= 0 ? activeIndex : 0
 
-      if (filter === 'base') {
+      if (filter === 'topics') {
         if (topicResults[idx]) {
           router.push(topicResults[idx].url)
           close()

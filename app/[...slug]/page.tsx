@@ -38,10 +38,10 @@ export default async function PostPage({ params }: Props) {
   if (!post) notFound()
 
   const relatedPosts =
-    post.base.length > 0
+    post.topics.length > 0
       ? posts
-          .filter((p) => !p.draft && p.slugAsParams !== post.slugAsParams && p.base.some((b) => post.base.includes(b)))
-          .map((p) => ({ p, overlap: overlapCount(p.base, post.base), sim: jaccard(p.base, post.base) }))
+          .filter((p) => !p.draft && p.slugAsParams !== post.slugAsParams && p.topics.some((t) => post.topics.includes(t)))
+          .map((p) => ({ p, overlap: overlapCount(p.topics, post.topics), sim: jaccard(p.topics, post.topics) }))
           .sort((a, b) => b.overlap - a.overlap || b.sim - a.sim)
           .slice(0, 5)
           .map((x) => x.p)
@@ -98,14 +98,14 @@ export default async function PostPage({ params }: Props) {
               <p className={styles.audioTitle}>{post.audioTitle}</p>
             </div>
           )}
-          {post.base.length > 0 && (
+          {post.topics.length > 0 && (
             <div className={styles.topicsBlock}>
               <p className={styles.footerLabel}>{uiText.postFooter.topics}</p>
               <ul className={styles.topicChipList}>
-                {post.base.map((base) => (
-                  <li key={base}>
-                    <a href={`/topics/${encodeURIComponent(base)}`} className={styles.topicChip}>
-                      {base}
+                {post.topics.map((topic) => (
+                  <li key={topic}>
+                    <a href={`/topics/${encodeURIComponent(topic)}`} className={styles.topicChip}>
+                      {topic}
                     </a>
                   </li>
                 ))}

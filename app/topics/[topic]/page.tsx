@@ -23,7 +23,7 @@ export default async function TopicPage({ params }: Props) {
   const topicPosts = getPostsByTopic(decodedTopic).map((p) => ({
     slugAsParams: p.slugAsParams,
     title: p.title,
-    base: p.base,
+    topics: p.topics,
   }))
 
   return (

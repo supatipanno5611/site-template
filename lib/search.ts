@@ -8,7 +8,7 @@ export type SearchDoc = {
   title: string
   url: string
   body: string
-  base: string
+  topics: string
   audioTitle: string
   tags: string[]
   people: string[]
@@ -24,9 +24,9 @@ export function getSearchDocs(): SearchDoc[] {
         title: p.title,
         url: `/${p.slugAsParams}`,
         body: p.plainText,
-        base: p.base.join(' '),
+        topics: p.topics.join(' '),
         audioTitle,
-        tags: p.base,
+        tags: p.topics,
         people: getPostPeople(p),
       }
     })

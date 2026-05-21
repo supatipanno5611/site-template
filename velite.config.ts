@@ -36,7 +36,7 @@ const posts = defineCollection({
   pattern: '**/*.md',
   schema: s.object({
     draft: s.boolean().default(false),
-    base: s.string().array().default([]),
+    topics: s.string().array().default([]),
     teacher: s.string().array().default([]),
     translator: s.string().array().default([]),
     writer: s.string().array().default([]),
@@ -77,6 +77,7 @@ const posts = defineCollection({
       title: titleForContentPath(data.slug),
       slugAsParams: publicSlugForContentPath(data.slug),
       plainText: file.data.plainText ?? '',
+      topics: cleanStringList(data.topics),
       teacher: cleanStringList(data.teacher),
       translator: cleanStringList(data.translator),
       writer: cleanStringList(data.writer),

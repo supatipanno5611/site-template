@@ -1,8 +1,9 @@
 export const siteConfig = {
   title: 'sakko',
   description: '',
+  lang: 'en' as 'en' | 'ko' | 'si',
   VAULT_PUBLISH: 'C:\\Markdown\\medicine\\sakko',
-  homeSlug: '홈',
+  homeSlug: 'home',
   curatedTopicSourceTitles: [] as string[],
   contentDoctor: {
     ignoreFiles: [] as string[],

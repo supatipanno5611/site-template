@@ -8,8 +8,8 @@ import { siteConfig } from '../site.config.ts'
 const ROOT = cwd()
 const CONTENT_DIR = join(ROOT, 'content')
 const MODE = argv[2]
-const VALID_RULES = new Set(['base', 'titleSlug', 'wikiLinks', 'media', 'encoding'])
-const SUSPICIOUS_ENCODING_TOKENS = ['\uFFFD', '\u00C3', '\u00C2', '\u00EC', '\u00EB', '\u00ED', '\u00EA']
+const VALID_RULES = new Set(['topics', 'titleSlug', 'wikiLinks', 'media', 'encoding'])
+const SUSPICIOUS_ENCODING_TOKENS = ['\uFFFD', '\u00C3', '\u00C2']
 const DOCTOR_CONFIG = siteConfig.contentDoctor ?? {}
 const YOUTUBE_ID_RE = /^[A-Za-z0-9_-]{11}$/
 const INVISIBLE_TEXT_RE = /[\u200B\uFEFF]/g
@@ -118,11 +118,11 @@ function appendStringList(lines, key, values) {
 function stringifyFrontmatter(data) {
   const lines = []
   if (data.draft !== undefined) lines.push(`draft: ${data.draft}`)
-  if ((data.base ?? []).length === 0) {
-    lines.push('base: []')
+  if ((data.topics ?? []).length === 0) {
+    lines.push('topics: []')
   } else {
-    lines.push('base:')
-    for (const base of data.base) lines.push(`  - ${base}`)
+    lines.push('topics:')
+    for (const topic of data.topics) lines.push(`  - ${topic}`)
   }
   appendStringList(lines, 'teacher', data.teacher)
   appendStringList(lines, 'translator', data.translator)
@@ -256,7 +256,7 @@ async function main() {
     if (exceptions.ignored) continue
 
     const checks = {
-      base: !exceptions.ignoredRules.has('base'),
+      topics: !exceptions.ignoredRules.has('topics'),
       titleSlug: !exceptions.ignoredRules.has('titleSlug'),
       wikiLinks: !exceptions.ignoredRules.has('wikiLinks'),
       media: !exceptions.ignoredRules.has('media'),
@@ -264,9 +264,9 @@ async function main() {
     }
     let dirty = false
 
-    if (checks.base && !Array.isArray(data.base)) {
-      addIssue(issues, 'fixable', file, 'missing base frontmatter')
-      data.base = []
+    if (checks.topics && !Array.isArray(data.topics)) {
+      addIssue(issues, 'fixable', file, 'missing topics frontmatter')
+      data.topics = []
       dirty = true
     }
 
@@ -355,7 +355,7 @@ async function main() {
       INVISIBLE_TEXT_RE.lastIndex = 0
 
       if (SUSPICIOUS_ENCODING_TOKENS.some((token) => source.includes(token))) {
-        addIssue(issues, 'warn', file, 'possible broken Korean encoding')
+        addIssue(issues, 'warn', file, 'possible broken encoding')
       }
     }
 

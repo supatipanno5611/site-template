@@ -1,4 +1,144 @@
-export const uiText = {
+import { siteConfig } from '@/site.config'
+
+const enUiText = {
+  common: {
+    more: 'More',
+    postCount: (count: number) => `${count} ${count === 1 ? 'post' : 'posts'}`,
+  },
+  nav: {
+    home: 'Go home',
+  },
+  search: {
+    open: 'Open search',
+    openWithShortcut: 'Search (Ctrl+K)',
+    close: 'Close search',
+    inputLabel: 'Search posts',
+    clear: 'Clear search',
+    resultsLabel: 'Search results',
+    heading: 'Search results',
+    headingForQuery: (query: string) => `Search results for "${query}"`,
+    resultCount: (count: number) => `${count} ${count === 1 ? 'result' : 'results'}`,
+    noResults: (query: string) => `No results for "${query}".`,
+    viewAllResults: (query: string) => `View all results for "${query}"`,
+    tryAll: 'Search everything',
+    loading: 'Loading search index...',
+    loadError: 'Could not load search. Please try again.',
+    guide: 'Search titles, body text, topics, and audio titles.',
+    matchedIn: (fields: string) => `Matched in ${fields}`,
+    filters: {
+      all: 'All',
+      title: 'Title',
+      body: 'Body',
+      topics: 'Topics',
+      people: 'People',
+    },
+    fieldBadges: {
+      title: 'Title',
+      body: 'Body',
+      audioTitle: 'Audio',
+      topics: 'Topics',
+    },
+    placeholders: ['Search posts', 'Find topics', 'Search titles or body text', 'What are you looking for?'],
+    hints: {
+      move: 'Move with arrow keys',
+      changeFilter: 'Change filter with left/right',
+      open: 'Enter to open',
+      select: 'Enter to select',
+      multiSelect: 'Ctrl+Enter to keep selecting',
+      close: 'Esc to close',
+    },
+  },
+  topic: {
+    title: 'Topic search',
+    openSearch: 'Open topic search',
+    openSearchWithShortcut: 'Topic search (Ctrl+K)',
+    searchDialog: 'Topic search',
+    closeSearch: 'Close topic search',
+    placeholder: 'Find topics',
+    clear: 'Clear topic search',
+    removeLabel: (topic: string) => `Remove ${topic}`,
+    recommended: 'Recommended topics',
+    browse: 'Browse topics',
+    emptyBrowse: 'Choose a topic to browse.',
+    emptyCombination: 'No posts match this topic combination.',
+    resetSearch: 'Reset search',
+    fallbackNotice: 'No exact matches found, so related posts are shown.',
+    noMatches: 'No matching topics.',
+  },
+  people: {
+    title: 'People search',
+    openSearch: 'Open people search',
+    openSearchWithShortcut: 'People search (Ctrl+K)',
+    searchDialog: 'People search',
+    closeSearch: 'Close people search',
+    placeholder: 'Find people',
+    clear: 'Clear people search',
+    removeLabel: (name: string) => `Remove ${name}`,
+    browse: 'Browse people',
+    emptyBrowse: 'Choose a person to browse.',
+    emptyCombination: 'No posts match this people combination.',
+    resetSearch: 'Reset search',
+  },
+  audio: {
+    label: 'Audio',
+    play: 'Play',
+    pause: 'Pause',
+    seek: 'Audio position',
+    repeatOn: 'Turn repeat on',
+    repeatOff: 'Turn repeat off',
+  },
+  fullscreen: {
+    enter: 'Enter fullscreen',
+    exit: 'Exit fullscreen',
+  },
+  textSize: {
+    increase: 'Increase text size',
+    reset: 'Default text size',
+  },
+  toc: {
+    label: 'Table of contents',
+  },
+  chapter: {
+    list: 'Chapter list',
+    jumpTo: (label: string, title: string) => `Go to ${label} ${title}`,
+  },
+  cue: {
+    jumpTo: (label: string) => `Go to ${label}`,
+  },
+  share: {
+    label: 'Share link',
+  },
+  heading: {
+    copyLink: 'Copy heading link',
+    copied: 'Copied',
+  },
+  postFooter: {
+    title: 'Title',
+    info: 'Info',
+    teacher: 'Teacher',
+    translator: 'Translator',
+    writer: 'Writer',
+    questioner: 'Questioner',
+    audio: 'Audio',
+    topics: 'Topics',
+    related: 'Related posts',
+    backlinks: 'Backlinks',
+  },
+} as const
+
+type WidenUiText<T> = T extends (...args: infer Args) => infer Return
+  ? (...args: Args) => Return
+  : T extends string
+    ? string
+    : T extends readonly string[]
+      ? readonly string[]
+      : T extends object
+        ? { readonly [K in keyof T]: WidenUiText<T[K]> }
+        : T
+
+type UiText = WidenUiText<typeof enUiText>
+
+const koUiText = {
   common: {
     more: '더 보기',
     postCount: (count: number) => `${count}개의 글`,
@@ -27,14 +167,14 @@ export const uiText = {
       all: '전체',
       title: '제목',
       body: '본문',
-      base: '주제어',
+      topics: '주제어',
       people: '참여자',
     },
     fieldBadges: {
       title: '제목',
       body: '본문',
       audioTitle: '오디오',
-      base: '주제어',
+      topics: '주제어',
     },
     placeholders: ['글 검색', '주제어 찾기', '제목이나 본문 검색', '무엇을 찾고 있나요?'],
     hints: {
@@ -122,4 +262,12 @@ export const uiText = {
     related: '관련 글',
     backlinks: '백링크',
   },
-} as const
+} as const satisfies UiText
+
+export const uiTextDictionaries = {
+  en: enUiText,
+  ko: koUiText,
+  si: enUiText,
+} as const satisfies Record<typeof siteConfig.lang, UiText>
+
+export const uiText = uiTextDictionaries[siteConfig.lang] ?? uiTextDictionaries.en

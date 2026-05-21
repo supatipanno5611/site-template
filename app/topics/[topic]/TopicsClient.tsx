@@ -17,7 +17,7 @@ import styles from './page.module.css'
 type PostSummary = {
   slugAsParams: string
   title: string
-  base: string[]
+  topics: string[]
 }
 
 type TopicInfo = { name: string; count: number }
@@ -78,11 +78,11 @@ export default function TopicsClient({ topic, posts, allTopics, curatedTopics }:
     else addTopic(t)
   }
 
-  const andResults = selected.length === 0 ? [] : posts.filter((p) => selected.every((t) => p.base.includes(t)))
+  const andResults = selected.length === 0 ? [] : posts.filter((p) => selected.every((t) => p.topics.includes(t)))
   const usedFallback = andResults.length === 0 && selected.length > 1
-  const filtered = usedFallback ? posts.filter((p) => selected.some((t) => p.base.includes(t))) : andResults
+  const filtered = usedFallback ? posts.filter((p) => selected.some((t) => p.topics.includes(t))) : andResults
   const sorted = filtered
-    .map((p) => ({ p, overlap: overlapCount(p.base, selected), sim: jaccard(p.base, selected) }))
+    .map((p) => ({ p, overlap: overlapCount(p.topics, selected), sim: jaccard(p.topics, selected) }))
     .sort((a, b) => b.overlap - a.overlap || b.sim - a.sim)
     .map((x) => x.p)
   const suggestedTopics = curatedTopics.length > 0 ? curatedTopics : allTopics.map((topicInfo) => topicInfo.name)
