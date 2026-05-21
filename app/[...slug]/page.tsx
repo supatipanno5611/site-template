@@ -56,7 +56,13 @@ export default async function PostPage({ params }: Props) {
   return (
     <CueProvider>
       <main className={styles.main} data-has-audio={post.hasAudio || undefined}>
-        <Header title={post.title} showChapterMenu={showChapterMenu} showAudioRepeat={post.hasAudio} tocItems={tocItems} />
+        <Header
+          title={post.title}
+          showHomeLink
+          showChapterMenu={showChapterMenu}
+          showAudioRepeat={post.hasAudio}
+          tocItems={tocItems}
+        />
         {post.hasAudio && <AudioSeekbar />}
         {post.youtubeId && <YouTubeEmbed id={post.youtubeId} />}
         {post.audioSrc && <audio src={post.audioSrc} preload="metadata" />}
