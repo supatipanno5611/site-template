@@ -1,0 +1,31 @@
+.fab {
+  position: fixed;
+  z-index: 50;
+  width: var(--fab-size);
+  height: var(--fab-size);
+  border-radius: var(--fab-radius);
+  border: none;
+  background: var(--fab-bg);
+  color: var(--fab-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--fab-shadow);
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.fab:hover {
+  opacity: var(--fab-hover-opacity);
+}
+
+.fab svg {
+  width: var(--fab-icon-size);
+  height: var(--fab-icon-size);
+}
+
+.fabHidden {
+  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
+}

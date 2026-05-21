@@ -1,0 +1,51 @@
+.topicRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 9px 14px;
+}
+
+.topicRow:hover,
+.activeRow .topicRow {
+  background: var(--search-active-bg);
+}
+
+.activeRow .topicRow {
+  box-shadow: inset 2px 0 0 var(--search-active-indicator);
+}
+
+.rowSelected .topicRow {
+  background: var(--topic-chip-active-bg);
+}
+
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.checkIcon {
+  color: var(--color-accent);
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.fallbackRow {
+  list-style: none;
+}
+
+.fallbackText {
+  display: block;
+  padding: 9px 14px;
+  color: var(--muted);
+}

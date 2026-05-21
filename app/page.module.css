@@ -1,0 +1,33 @@
+.main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: calc(120px + env(safe-area-inset-top)) 24px 120px;
+}
+
+@media (max-width: 600px) {
+  .main {
+    padding: calc(100px + env(safe-area-inset-top)) 20px 80px;
+  }
+}
+
+.article {
+  margin-bottom: 96px;
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footerLink {
+  font-size: 0.93rem;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footerLink:hover {
+  color: var(--color-accent);
+}

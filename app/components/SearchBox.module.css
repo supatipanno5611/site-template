@@ -1,0 +1,494 @@
+/* ── 모바일 전체화면 오버레이 (portal로 body에 렌더링) ── */
+.mobileOverlay {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .mobileOverlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--color-overlay);
+    z-index: 99;
+  }
+}
+
+/* ── 컨테이너 ── */
+.container {
+  position: relative;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .containerFocused {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 12px 16px;
+    background: var(--color-bg);
+    box-shadow: 0 2px 20px var(--shadow-sm);
+  }
+}
+
+/* ── 입력 래퍼 ── */
+.inputWrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.inputField {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.backButton {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .backButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+    padding: 0;
+    border-radius: 6px;
+  }
+
+  .backButton:hover {
+    background: var(--color-hover);
+  }
+
+  .backButton svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.icon {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: var(--color-muted);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.spinner {
+  position: absolute;
+  left: 12px;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--search-input-border);
+  border-top-color: var(--search-input-focus);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 11px 38px 11px 38px;
+  border: 1.5px solid var(--search-input-border);
+  border-radius: 8px;
+  outline: none;
+  background: var(--search-input-bg);
+  color: var(--color-text);
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input::placeholder {
+  color: var(--color-muted);
+}
+
+.input:focus {
+  border-color: var(--search-input-focus);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.clear {
+  position: absolute;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-muted);
+  padding: 0;
+  border-radius: 4px;
+  transition: color 0.1s;
+}
+
+.clear:hover {
+  color: var(--color-text);
+}
+
+.clear svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── 드롭다운 ── */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--search-dropdown-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  z-index: 10;
+  box-shadow: 0 8px 32px var(--shadow-md);
+  overflow: hidden;
+  animation: dropIn 0.14s ease;
+}
+
+@keyframes dropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .dropdown {
+    position: static;
+    margin-top: 8px;
+    border-radius: 8px;
+    animation: none;
+  }
+}
+
+/* ── 필터 탭 ── */
+.filters {
+  display: flex;
+  gap: 4px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.filterBtn {
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.filterBtn:hover {
+  background: var(--search-active-bg);
+  color: var(--color-text);
+}
+
+.filterActive {
+  background: var(--search-active-bg);
+  border-color: var(--color-border);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+/* ── 결과 목록 ── */
+.results {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+@media (max-width: 600px) {
+  .results {
+    max-height: calc(100dvh - 160px);
+  }
+
+  .overlayDropdown .results {
+    max-height: none;
+    flex: 1;
+    overscroll-behavior: contain;
+  }
+}
+
+.results li a,
+.viewAllResult {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 9px 14px;
+  text-decoration: none;
+  color: inherit;
+  gap: 4px;
+}
+
+.results li:hover a,
+.active a,
+.results li:hover .viewAllResult,
+.active .viewAllResult {
+  background: var(--search-active-bg);
+}
+
+.active a,
+.active .viewAllResult {
+  box-shadow: inset 2px 0 0 var(--search-active-indicator);
+}
+
+.viewAllResult {
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.title {
+  font-size: 0.93rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.resultHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.resultHeader .title {
+  min-width: 0;
+}
+
+.fieldBadges {
+  display: inline-flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.fieldBadge {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: var(--color-muted);
+}
+
+.snippet {
+  font-size: 0.81rem;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.mark {
+  background: var(--search-mark-bg);
+  border-radius: 2px;
+  padding: 0 2px;
+  font-style: normal;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tagMatched {
+  font-size: 0.76rem;
+  padding: 1px 7px;
+  border-radius: 20px;
+  background: var(--search-tag-matched-bg);
+  color: var(--color-text);
+  font-weight: 400;
+}
+
+.tagOther {
+  font-size: 0.76rem;
+  padding: 1px 7px;
+  border-radius: 20px;
+  background: var(--search-tag-bg);
+  color: var(--color-muted);
+}
+
+.audioMeta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  font-size: 0.81rem;
+  color: var(--color-muted);
+}
+
+.audioMetaLabel {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  color: var(--color-muted);
+}
+
+.topicCount {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+.gotoTopicSearch {
+  font-size: 0.9rem;
+  color: var(--color-accent);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 14px;
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.emptyAction {
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  padding: 0;
+}
+
+.emptyAction:hover {
+  color: var(--link-hover);
+}
+
+.guide {
+  padding: 16px 14px;
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+/* ── 오버레이 모드 (모든 화면 크기) ── */
+.overlayBackdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay);
+  z-index: 199;
+  animation: fadeIn 0.15s ease;
+}
+
+.overlayContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  padding: 12px 16px;
+  background: var(--color-bg);
+  box-shadow: 0 2px 20px var(--shadow-sm);
+  animation: fadeIn 0.15s ease;
+}
+
+.overlayDropdown {
+  position: static;
+  margin-top: 8px;
+  border-radius: 8px;
+  animation: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlayBackdrop,
+  .overlayContainer,
+  .dropdown {
+    animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .overlayBackdrop {
+    display: none;
+  }
+
+  .overlayContainer {
+    inset: 0;
+    padding: 12px 16px;
+    padding-top: calc(12px + env(safe-area-inset-top));
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .overlayDropdown {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .overlayDropdown .filterBtn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .overlayDropdown .results li a {
+    padding: 12px 16px;
+  }
+
+  .overlayDropdown .hint {
+    display: none;
+  }
+}
+
+/* ── 키보드 힌트 ── */
+.hint {
+  display: flex;
+  gap: 12px;
+  padding: 6px 14px;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.72rem;
+  color: var(--color-muted);
+  user-select: none;
+}

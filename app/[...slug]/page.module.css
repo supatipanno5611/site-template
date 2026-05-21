@@ -1,0 +1,141 @@
+.main {
+  max-width: 680px;
+  margin: 0 auto;
+  /* 56px fixed header + 72px gap ≈ original header spacing */
+  padding: calc(120px + env(safe-area-inset-top)) 24px 120px;
+}
+
+@media (max-width: 600px) {
+  .main {
+    padding: calc(100px + env(safe-area-inset-top)) 20px 80px;
+  }
+}
+
+.article {
+  margin-bottom: 96px;
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.footerLabel {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.footerTitle {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.93rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.personList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.personRow {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  font-size: 0.93rem;
+  line-height: 1.6;
+}
+
+.personRow dt {
+  color: var(--muted);
+}
+
+.personRow dd {
+  margin: 0;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.personLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 10px;
+}
+
+.personLink {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.personLink:hover {
+  color: var(--color-accent);
+}
+
+.audioBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+.audioTitle {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.93rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.topicsBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+.topicChipList {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+}
+
+.topicChip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--topic-chip-border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: var(--topic-chip-color);
+  font-size: 0.84rem;
+  text-decoration: none;
+  background: var(--topic-chip-bg);
+}
+
+.topicChip:hover {
+  border-color: var(--topic-chip-hover-border);
+  color: var(--color-accent);
+}
+
+.relatedList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.relatedLink {
+  font-size: 0.93rem;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.relatedLink:hover {
+  color: var(--color-accent);
+}

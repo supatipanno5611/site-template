@@ -1,0 +1,13 @@
+.embed {
+  width: 100%;
+  margin-bottom: 24px;
+  background: var(--media-sticky-bg);
+}
+
+.embed :global(lite-youtube) {
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  background-position: center center;
+  background-size: cover;
+}
