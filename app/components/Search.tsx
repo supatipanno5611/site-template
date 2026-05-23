@@ -13,7 +13,7 @@ import styles from './Search.module.css'
 export default function Search() {
   const pathname = usePathname()
   const isTopicRoute = pathname.startsWith('/topics')
-  const isLocalSearchRoute = isTopicRoute
+  const showFab = pathname === '/'
   const visible = useHideOnScroll()
   const [open, setOpen] = useState(false)
   const [initialQuery, setInitialQuery] = useState<string | undefined>()
@@ -23,7 +23,7 @@ export default function Search() {
       setInitialQuery(undefined)
       setOpen(true)
     }, []),
-    !isLocalSearchRoute
+    !isTopicRoute
   )
 
   useEffect(() => {
@@ -47,11 +47,11 @@ export default function Search() {
     setInitialQuery(undefined)
   }
 
-  if (isLocalSearchRoute && !open) return null
+  if (!showFab && !open) return null
 
   return (
     <>
-      {!isLocalSearchRoute && (
+      {showFab && (
         <button
           className={`${fabStyles.fab} ${styles.search} ${visible ? '' : fabStyles.fabHidden}`}
           onClick={openSearch}

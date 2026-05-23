@@ -83,6 +83,12 @@ const enUiText = {
   toc: {
     label: 'Table of contents',
   },
+  parentToc: {
+    label: 'View table of contents',
+    indexLink: 'Open table of contents',
+    empty: 'No posts in this table of contents.',
+    current: 'Current post',
+  },
   chapter: {
     list: 'Chapter list',
     jumpTo: (label: string, title: string) => `Go to ${label} ${title}`,
@@ -201,6 +207,12 @@ const koUiText = {
   },
   toc: {
     label: '본문 목차',
+  },
+  parentToc: {
+    label: '목차 보기',
+    indexLink: '목차 글 보기',
+    empty: '이 목차에 속한 글이 없어요.',
+    current: '현재 글',
   },
   chapter: {
     list: '챕터 목록',

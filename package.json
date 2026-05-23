@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "sync": "node scripts/sync.mjs",
+    "content:unwrap": "node scripts/unwrap-markdown.mjs",
     "content:check": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/content-doctor.mjs check",
     "content:fix": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/content-doctor.mjs fix"
   },

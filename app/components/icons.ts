@@ -1,5 +1,6 @@
 export {
   ALargeSmall as TextSizeIcon,
+  BookOpen as BookOpenIcon,
   ChevronLeft as BackIcon,
   Check as CheckIcon,
   House as HomeIcon,

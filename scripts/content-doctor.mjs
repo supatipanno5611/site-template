@@ -112,6 +112,8 @@ function yamlScalar(value) {
 function stringifyFrontmatter(data) {
   const lines = []
   if (data.draft !== undefined) lines.push(`draft: ${data.draft}`)
+  if (data.type) lines.push(`type: ${yamlScalar(data.type)}`)
+  if (data.parent) lines.push(`parent: ${yamlScalar(data.parent)}`)
   if ((data.topics ?? []).length === 0) {
     lines.push('topics: []')
   } else {
@@ -226,7 +228,15 @@ async function main() {
   if (!existsSync(CONTENT_DIR)) throw new Error(`Missing content directory: ${CONTENT_DIR}`)
 
   const files = await listMarkdownFiles(CONTENT_DIR)
-  const knownSlugs = new Set(files.map(slugForFile))
+  const postsBySlug = new Map()
+  for (const file of files) {
+    const slug = slugForFile(file)
+    const source = await readFile(file, 'utf8')
+    const data = parseFrontmatter(splitFrontmatter(source).matter)
+    if (!postsBySlug.has(slug)) postsBySlug.set(slug, [])
+    postsBySlug.get(slug).push({ file, data })
+  }
+  const knownSlugs = new Set(postsBySlug.keys())
   const slugCounts = new Map()
   for (const file of files) slugCounts.set(slugForFile(file), (slugCounts.get(slugForFile(file)) ?? 0) + 1)
 
@@ -265,8 +275,24 @@ async function main() {
       if (title !== title.trim() || /\s{2,}/.test(title)) {
         addIssue(issues, 'warn', file, `suspicious title derived from filename: "${title}"`)
       }
+      if (data.type !== undefined && data.type !== 'index') {
+        addIssue(issues, 'error', file, `unsupported type: ${data.type}`)
+      }
       if (slugCounts.get(slug) > 1) {
         addIssue(issues, 'error', file, `duplicate slug after normalization: ${slug}`)
+      }
+      if (data.type === 'index' && data.parent) {
+        addIssue(issues, 'error', file, 'type: index cannot declare parent')
+      }
+      if (data.parent) {
+        const parentPosts = postsBySlug.get(data.parent) ?? []
+        if (data.parent === slug) {
+          addIssue(issues, 'error', file, `parent cannot reference itself: ${data.parent}`)
+        } else if (parentPosts.length === 0) {
+          addIssue(issues, 'error', file, `missing parent: ${data.parent}`)
+        } else if (!parentPosts.some((post) => post.data.type === 'index')) {
+          addIssue(issues, 'error', file, `parent must reference type: index post: ${data.parent}`)
+        }
       }
     }
 

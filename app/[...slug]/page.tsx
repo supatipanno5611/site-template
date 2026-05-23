@@ -5,7 +5,9 @@ import AudioFab from '@/app/components/AudioFab'
 import AudioSeekbar from '@/app/components/AudioSeekbar'
 import { CueProvider } from '@/app/components/CueProvider'
 import Header from '@/app/components/Header'
+import ParentTocFab from '@/app/components/ParentTocFab'
 import YouTubeEmbed from '@/app/components/YouTubeEmbed'
+import { getParentToc } from '@/lib/parent-toc'
 import { safeDecodeURIComponent } from '@/lib/safe-decode'
 import { extractTocItems } from '@/lib/heading-toc'
 import { overlapCount, jaccard } from '@/lib/topics'
@@ -52,6 +54,7 @@ export default async function PostPage({ params }: Props) {
   const enableHeadingAnchors = !post.youtubeId && !post.audioSrc
   const showChapterMenu = Boolean(post.youtubeId || post.audioSrc)
   const tocItems = enableHeadingAnchors ? extractTocItems(post.body) : []
+  const parentToc = getParentToc(post, posts)
 
   return (
     <CueProvider>
@@ -70,6 +73,7 @@ export default async function PostPage({ params }: Props) {
           <MarkdownContent source={post.body} enableHeadingAnchors={enableHeadingAnchors} />
         </article>
         {post.hasAudio && <AudioFab />}
+        {parentToc && <ParentTocFab toc={parentToc} currentSlug={post.slugAsParams} />}
         <footer className={styles.footer}>
           <div>
             <p className={styles.footerLabel}>{uiText.postFooter.info}</p>
