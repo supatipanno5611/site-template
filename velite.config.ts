@@ -114,6 +114,7 @@ const posts = defineCollection({
     const source = raw ?? ''
     const markdownBody = stripFencedCode(source)
     rejectMdxSyntax(source)
+    if (data.type === 'index' && hasFrontmatterKey(source, 'topics')) throw new Error('type: index posts cannot use topics frontmatter')
     if (hasFrontmatterKey(source, 'media')) throw new Error('media frontmatter is no longer supported')
     if (/::(?:youtube|audio)\b/.test(markdownBody)) throw new Error('media directives are no longer supported')
     if (data.youtubeId && data.audioSrc) throw new Error('youtubeId and audioSrc cannot be used together')

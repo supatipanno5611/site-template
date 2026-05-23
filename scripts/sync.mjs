@@ -200,6 +200,12 @@ function validateMarkdownOnly(source) {
   if (data.media !== undefined) {
     errors.push('media frontmatter is no longer supported')
   }
+  if (data.type !== undefined && data.type !== 'index') {
+    errors.push(`unsupported type: ${data.type}`)
+  }
+  if (data.type === 'index' && data.topics !== undefined) {
+    errors.push('type: index cannot use topics frontmatter')
+  }
   if (data.youtubeId && data.audioSrc) {
     errors.push('youtubeId and audioSrc cannot be used together')
   }

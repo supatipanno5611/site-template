@@ -264,7 +264,9 @@ async function main() {
     }
     let dirty = false
 
-    if (checks.topics && !Array.isArray(data.topics)) {
+    if (checks.topics && data.type === 'index' && data.topics !== undefined) {
+      addIssue(issues, 'error', file, 'type: index cannot use topics frontmatter')
+    } else if (checks.topics && data.type !== 'index' && !Array.isArray(data.topics)) {
       addIssue(issues, 'fixable', file, 'missing topics frontmatter')
       data.topics = []
       dirty = true
