@@ -68,9 +68,15 @@ function parseFrontmatterData(source: string) {
   return data
 }
 
+function parseOrder(value: string | undefined) {
+  if (value === undefined) return undefined
+  if (!/^-?\d+(?:\.\d+)?$/.test(value)) return null
+  return Number(value)
+}
+
 function validateContentRelationships() {
   const files = listMarkdownFiles(CONTENT_DIR)
-  const bySlug = new Map<string, { file: string; type?: string; parent?: string }>()
+  const bySlug = new Map<string, { file: string; type?: string; parent?: string; order?: number | null }>()
 
   for (const file of files) {
     const rel = relative(CONTENT_DIR, file).replace(/\\/g, '/')
@@ -81,16 +87,26 @@ function validateContentRelationships() {
     if (existing) {
       throw new Error(`duplicate slug after normalization: ${existing.file} and ${rel} both map to ${slug}`)
     }
-    bySlug.set(slug, { file: rel, type: data.type, parent: data.parent })
+    bySlug.set(slug, { file: rel, type: data.type, parent: data.parent, order: parseOrder(data.order) })
   }
+
+  const ordersByParent = new Map<string, Map<number, string>>()
 
   for (const [slug, post] of bySlug) {
     if (post.type === 'index' && post.parent) throw new Error(`${post.file} cannot declare parent because type: index is top-level`)
+    if (post.type === 'index' && post.order !== undefined) throw new Error(`${post.file} cannot declare order because type: index is top-level`)
     if (!post.parent) continue
+    if (post.order === undefined) throw new Error(`${post.file} must declare order because it references parent: ${post.parent}`)
+    if (post.order === null) throw new Error(`${post.file} has invalid order: order must be a number`)
     const parent = bySlug.get(post.parent)
     if (!parent) throw new Error(`${post.file} references missing parent: ${post.parent}`)
     if (post.parent === slug) throw new Error(`${post.file} cannot reference itself as parent`)
     if (parent.type !== 'index') throw new Error(`${post.file} parent must reference type: index post: ${post.parent}`)
+    const siblingOrders = ordersByParent.get(post.parent) ?? new Map<number, string>()
+    const existing = siblingOrders.get(post.order)
+    if (existing) throw new Error(`${post.file} duplicates order ${post.order} with ${existing}`)
+    siblingOrders.set(post.order, post.file)
+    ordersByParent.set(post.parent, siblingOrders)
   }
 }
 
@@ -103,6 +119,7 @@ const posts = defineCollection({
     draft: s.boolean().default(false),
     type: s.enum(['index']).optional(),
     parent: s.string().optional(),
+    order: s.number().optional(),
     topics: s.string().array().default([]),
     youtubeId: s.string().optional(),
     audioSrc: s.string().optional(),
@@ -115,6 +132,7 @@ const posts = defineCollection({
     const markdownBody = stripFencedCode(source)
     rejectMdxSyntax(source)
     if (data.type === 'index' && hasFrontmatterKey(source, 'topics')) throw new Error('type: index posts cannot use topics frontmatter')
+    if (data.type === 'index' && hasFrontmatterKey(source, 'order')) throw new Error('type: index posts cannot use order frontmatter')
     if (hasFrontmatterKey(source, 'media')) throw new Error('media frontmatter is no longer supported')
     if (/::(?:youtube|audio)\b/.test(markdownBody)) throw new Error('media directives are no longer supported')
     if (data.youtubeId && data.audioSrc) throw new Error('youtubeId and audioSrc cannot be used together')

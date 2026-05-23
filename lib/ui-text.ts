@@ -89,6 +89,10 @@ const enUiText = {
     empty: 'No posts in this table of contents.',
     current: 'Current post',
   },
+  indexToc: {
+    heading: 'Contents',
+    empty: 'No posts in this table of contents.',
+  },
   chapter: {
     list: 'Chapter list',
     jumpTo: (label: string, title: string) => `Go to ${label} ${title}`,
@@ -213,6 +217,10 @@ const koUiText = {
     indexLink: '목차 글 보기',
     empty: '이 목차에 속한 글이 없어요.',
     current: '현재 글',
+  },
+  indexToc: {
+    heading: '목차',
+    empty: '이 목차에 속한 글이 없어요.',
   },
   chapter: {
     list: '챕터 목록',

@@ -1,5 +1,6 @@
 ---
 parent: book/sri-sadhdharmayen-bindak
+order: 1
 topics:
     - ad
 ---

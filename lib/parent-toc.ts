@@ -5,6 +5,7 @@ type ParentPost = {
   title: string
   type?: 'index'
   parent?: string
+  order?: number
 }
 
 export type ParentTocLink = {
@@ -17,6 +18,21 @@ export type ParentToc = {
   items: ParentTocLink[]
 }
 
+export type IndexToc = {
+  items: ParentTocLink[]
+}
+
+function toTocLink(post: ParentPost): ParentTocLink {
+  return {
+    slugAsParams: post.slugAsParams,
+    title: post.title,
+  }
+}
+
+function compareByOrder(a: ParentPost, b: ParentPost) {
+  return (a.order ?? 0) - (b.order ?? 0)
+}
+
 export function getParentToc(current: ParentPost, posts: ParentPost[]): ParentToc | null {
   if (!current.parent || current.type === 'index') return null
 
@@ -25,17 +41,22 @@ export function getParentToc(current: ParentPost, posts: ParentPost[]): ParentTo
 
   const items = posts
     .filter((post) => !post.draft && post.type !== 'index' && post.parent === current.parent)
-    .sort((a, b) => a.slug.localeCompare(b.slug))
-    .map((post) => ({
-      slugAsParams: post.slugAsParams,
-      title: post.title,
-    }))
+    .sort(compareByOrder)
+    .map(toTocLink)
 
   return {
-    index: {
-      slugAsParams: index.slugAsParams,
-      title: index.title,
-    },
+    index: toTocLink(index),
     items,
   }
+}
+
+export function getIndexToc(current: ParentPost, posts: ParentPost[]): IndexToc | null {
+  if (current.type !== 'index') return null
+
+  const items = posts
+    .filter((post) => !post.draft && post.type !== 'index' && post.parent === current.slugAsParams)
+    .sort(compareByOrder)
+    .map(toTocLink)
+
+  return { items }
 }
