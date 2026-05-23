@@ -29,15 +29,11 @@ const TEXT = {
     missingParent: (parent) => `missing parent: ${parent}`,
     parentMustReferenceIndex: (parent) => `parent must reference type: index post: ${parent}`,
     brokenWikiLink: (target) => `broken wiki link: [[${target}]]`,
-    legacyMedia: 'legacy media frontmatter should be removed',
     audioAndYoutubeDirectives: 'audio and youtube directives cannot be used together',
-    multipleMediaDirectives: 'multiple media directives are not supported',
     invalidYouTubeId: (id) => `invalid YouTube id: ${id}`,
     youtubeAndAudioSrc: 'youtubeId and audioSrc cannot be used together',
-    migrateYouTube: 'migrate youtube directive to youtubeId frontmatter',
     invalidAudioSrc: (src) => `invalid audio src: ${src}`,
     audioTitleRequired: 'audioTitle required',
-    migrateAudio: 'migrate audio directive to audioSrc/audioTitle frontmatter',
     audioTitleRequiresAudioSrc: 'audioTitle requires audioSrc',
     invisibleText: 'invisible zero-width characters should be removed',
     possibleBrokenEncoding: 'possible broken encoding',
@@ -58,15 +54,11 @@ const TEXT = {
     missingParent: (parent) => `parent를 찾을 수 없습니다: ${parent}`,
     parentMustReferenceIndex: (parent) => `parent는 type: index post를 참조해야 합니다: ${parent}`,
     brokenWikiLink: (target) => `깨진 wiki link입니다: [[${target}]]`,
-    legacyMedia: 'legacy media frontmatter는 제거해야 합니다',
     audioAndYoutubeDirectives: 'audio directive와 youtube directive를 함께 사용할 수 없습니다',
-    multipleMediaDirectives: 'media directive는 여러 개 사용할 수 없습니다',
     invalidYouTubeId: (id) => `잘못된 YouTube id입니다: ${id}`,
     youtubeAndAudioSrc: 'youtubeId와 audioSrc를 함께 사용할 수 없습니다',
-    migrateYouTube: 'youtube directive를 youtubeId frontmatter로 옮겨야 합니다',
     invalidAudioSrc: (src) => `잘못된 audio src입니다: ${src}`,
     audioTitleRequired: 'audioTitle이 필요합니다',
-    migrateAudio: 'audio directive를 audioSrc/audioTitle frontmatter로 옮겨야 합니다',
     audioTitleRequiresAudioSrc: 'audioTitle에는 audioSrc가 필요합니다',
     invisibleText: '보이지 않는 zero-width 문자를 제거해야 합니다',
     possibleBrokenEncoding: 'encoding이 깨졌을 수 있습니다',
@@ -191,32 +183,6 @@ function stringifyFrontmatter(data) {
   return lines.join('\n')
 }
 
-function detectMediaDirectives(body) {
-  return {
-    audio: /::audio\b/.test(body),
-    youtube: /::youtube\b/.test(body),
-  }
-}
-
-function getDirectiveAttribute(attrs, name) {
-  const match = attrs.match(new RegExp(`\\b${name}\\s*=\\s*(["'])([\\s\\S]*?)\\1`, 'i'))
-  return match?.[2]
-}
-
-function getMediaDirectives(body) {
-  const directives = []
-  for (const match of body.matchAll(/::(youtube|audio)\{([^}]*)\}/g)) {
-    directives.push({
-      type: match[1],
-      source: match[0],
-      id: getDirectiveAttribute(match[2], 'id'),
-      src: getDirectiveAttribute(match[2], 'src'),
-      title: getDirectiveAttribute(match[2], 'title'),
-    })
-  }
-  return directives
-}
-
 function stripFencedCode(source) {
   return source.replace(/(^|\n)(`{3,}|~{3,})[\s\S]*?\n\2(?=\n|$)/g, '$1')
 }
@@ -276,10 +242,6 @@ function removeInvisibleText(value) {
   return value.replace(INVISIBLE_TEXT_RE, '')
 }
 
-function removeDirective(body, directive) {
-  return body.replace(directive.source, '').replace(/\n{3,}/g, '\n\n')
-}
-
 function isSafeAudioSrc(value) {
   if (value.startsWith('/') && !value.startsWith('//') && !/[^\S\r\n]/.test(value)) return true
   try {
@@ -313,8 +275,6 @@ async function main() {
     const parts = splitFrontmatter(source)
     const data = parseFrontmatter(parts.matter)
     const markdownBody = stripFencedCode(parts.body)
-    const directives = detectMediaDirectives(markdownBody)
-    const mediaDirectives = getMediaDirectives(markdownBody)
     const rel = relative(ROOT, file)
     const slug = slugForFile(file)
     const exceptions = getExceptionContext(file, slug)
@@ -371,46 +331,7 @@ async function main() {
       }
     }
 
-    const directiveTypes = [directives.audio && 'audio', directives.youtube && 'youtube'].filter(Boolean)
     if (checks.media) {
-      if (data.media !== undefined) {
-        addIssue(issues, 'fixable', file, t.legacyMedia)
-        delete data.media
-        dirty = true
-      }
-      if (directiveTypes.length > 1) {
-        addIssue(issues, 'error', file, t.audioAndYoutubeDirectives)
-      } else if (mediaDirectives.length > 1) {
-        addIssue(issues, 'error', file, t.multipleMediaDirectives)
-      } else if (mediaDirectives.length === 1) {
-        const directive = mediaDirectives[0]
-        if (directive.type === 'youtube') {
-          if (!directive.id || !YOUTUBE_ID_RE.test(directive.id)) {
-            addIssue(issues, 'error', file, t.invalidYouTubeId(directive.id ?? '<missing>'))
-          } else if (data.audioSrc) {
-            addIssue(issues, 'error', file, t.youtubeAndAudioSrc)
-          } else {
-            addIssue(issues, 'fixable', file, t.migrateYouTube)
-            data.youtubeId = data.youtubeId ?? directive.id
-            parts.body = removeDirective(parts.body, directive)
-            dirty = true
-          }
-        } else if (directive.type === 'audio') {
-          if (!directive.src || !isSafeAudioSrc(directive.src)) {
-            addIssue(issues, 'error', file, t.invalidAudioSrc(directive.src ?? '<missing>'))
-          } else if (!directive.title?.trim() && !data.audioTitle?.trim()) {
-            addIssue(issues, 'error', file, t.audioTitleRequired)
-          } else if (data.youtubeId) {
-            addIssue(issues, 'error', file, t.youtubeAndAudioSrc)
-          } else {
-            addIssue(issues, 'fixable', file, t.migrateAudio)
-            data.audioSrc = data.audioSrc ?? directive.src
-            data.audioTitle = data.audioTitle ?? directive.title.trim()
-            parts.body = removeDirective(parts.body, directive)
-            dirty = true
-          }
-        }
-      }
       if (data.youtubeId && data.audioSrc) {
         addIssue(issues, 'error', file, t.youtubeAndAudioSrc)
       }
