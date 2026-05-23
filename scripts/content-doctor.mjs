@@ -8,14 +8,79 @@ import { siteConfig } from '../site.config.ts'
 const ROOT = cwd()
 const CONTENT_DIR = join(ROOT, 'content')
 const MODE = argv[2]
+const OPTIONS = argv.slice(3)
+const LANG = OPTIONS.includes('--ko') ? 'ko' : 'en'
 const VALID_RULES = new Set(['topics', 'titleSlug', 'wikiLinks', 'media', 'encoding'])
 const SUSPICIOUS_ENCODING_TOKENS = ['\uFFFD', '\u00C3', '\u00C2']
 const DOCTOR_CONFIG = siteConfig.contentDoctor ?? {}
 const YOUTUBE_ID_RE = /^[A-Za-z0-9_-]{11}$/
 const INVISIBLE_TEXT_RE = /[\u200B\uFEFF]/g
 
-if (MODE !== 'check' && MODE !== 'fix') {
-  console.error('Usage: node scripts/content-doctor.mjs <check|fix>')
+const TEXT = {
+  en: {
+    usage: 'Usage: node scripts/content-doctor.mjs <check|fix> [--ko]',
+    typeIndexCannotUseTopics: 'type: index cannot use topics frontmatter',
+    missingTopics: 'missing topics frontmatter',
+    suspiciousTitle: (title) => `suspicious title derived from filename: "${title}"`,
+    unsupportedType: (type) => `unsupported type: ${type}`,
+    duplicateSlug: (slug) => `duplicate slug after normalization: ${slug}`,
+    typeIndexCannotDeclareParent: 'type: index cannot declare parent',
+    parentCannotReferenceItself: (parent) => `parent cannot reference itself: ${parent}`,
+    missingParent: (parent) => `missing parent: ${parent}`,
+    parentMustReferenceIndex: (parent) => `parent must reference type: index post: ${parent}`,
+    brokenWikiLink: (target) => `broken wiki link: [[${target}]]`,
+    legacyMedia: 'legacy media frontmatter should be removed',
+    audioAndYoutubeDirectives: 'audio and youtube directives cannot be used together',
+    multipleMediaDirectives: 'multiple media directives are not supported',
+    invalidYouTubeId: (id) => `invalid YouTube id: ${id}`,
+    youtubeAndAudioSrc: 'youtubeId and audioSrc cannot be used together',
+    migrateYouTube: 'migrate youtube directive to youtubeId frontmatter',
+    invalidAudioSrc: (src) => `invalid audio src: ${src}`,
+    audioTitleRequired: 'audioTitle required',
+    migrateAudio: 'migrate audio directive to audioSrc/audioTitle frontmatter',
+    audioTitleRequiresAudioSrc: 'audioTitle requires audioSrc',
+    invisibleText: 'invisible zero-width characters should be removed',
+    possibleBrokenEncoding: 'possible broken encoding',
+    fixedFile: (rel) => `fixed ${rel}`,
+    noIssuesFound: 'content doctor: no issues found',
+    clean: 'content doctor: clean',
+    changedFiles: (count) => `changed files: ${count}`,
+  },
+  ko: {
+    usage: '사용법: node scripts/content-doctor.mjs <check|fix> [--ko]',
+    typeIndexCannotUseTopics: 'type: index는 topics frontmatter를 사용할 수 없습니다',
+    missingTopics: 'topics frontmatter가 없습니다',
+    suspiciousTitle: (title) => `파일명에서 가져온 title이 의심스럽습니다: "${title}"`,
+    unsupportedType: (type) => `지원하지 않는 type입니다: ${type}`,
+    duplicateSlug: (slug) => `정규화 후 slug가 중복됩니다: ${slug}`,
+    typeIndexCannotDeclareParent: 'type: index는 parent를 선언할 수 없습니다',
+    parentCannotReferenceItself: (parent) => `parent가 자기 자신을 참조할 수 없습니다: ${parent}`,
+    missingParent: (parent) => `parent를 찾을 수 없습니다: ${parent}`,
+    parentMustReferenceIndex: (parent) => `parent는 type: index post를 참조해야 합니다: ${parent}`,
+    brokenWikiLink: (target) => `깨진 wiki link입니다: [[${target}]]`,
+    legacyMedia: 'legacy media frontmatter는 제거해야 합니다',
+    audioAndYoutubeDirectives: 'audio directive와 youtube directive를 함께 사용할 수 없습니다',
+    multipleMediaDirectives: 'media directive는 여러 개 사용할 수 없습니다',
+    invalidYouTubeId: (id) => `잘못된 YouTube id입니다: ${id}`,
+    youtubeAndAudioSrc: 'youtubeId와 audioSrc를 함께 사용할 수 없습니다',
+    migrateYouTube: 'youtube directive를 youtubeId frontmatter로 옮겨야 합니다',
+    invalidAudioSrc: (src) => `잘못된 audio src입니다: ${src}`,
+    audioTitleRequired: 'audioTitle이 필요합니다',
+    migrateAudio: 'audio directive를 audioSrc/audioTitle frontmatter로 옮겨야 합니다',
+    audioTitleRequiresAudioSrc: 'audioTitle에는 audioSrc가 필요합니다',
+    invisibleText: '보이지 않는 zero-width 문자를 제거해야 합니다',
+    possibleBrokenEncoding: 'encoding이 깨졌을 수 있습니다',
+    fixedFile: (rel) => `수정됨 ${rel}`,
+    noIssuesFound: 'content doctor: 문제가 없습니다',
+    clean: 'content doctor: 깨끗합니다',
+    changedFiles: (count) => `변경된 파일: ${count}`,
+  },
+}
+
+const t = TEXT[LANG]
+
+if ((MODE !== 'check' && MODE !== 'fix') || OPTIONS.some((option) => option !== '--ko')) {
+  console.error(t.usage)
   exit(2)
 }
 
@@ -265,9 +330,9 @@ async function main() {
     let dirty = false
 
     if (checks.topics && data.type === 'index' && data.topics !== undefined) {
-      addIssue(issues, 'error', file, 'type: index cannot use topics frontmatter')
+      addIssue(issues, 'error', file, t.typeIndexCannotUseTopics)
     } else if (checks.topics && data.type !== 'index' && !Array.isArray(data.topics)) {
-      addIssue(issues, 'fixable', file, 'missing topics frontmatter')
+      addIssue(issues, 'fixable', file, t.missingTopics)
       data.topics = []
       dirty = true
     }
@@ -275,25 +340,25 @@ async function main() {
     if (checks.titleSlug) {
       const title = titleForFile(file)
       if (title !== title.trim() || /\s{2,}/.test(title)) {
-        addIssue(issues, 'warn', file, `suspicious title derived from filename: "${title}"`)
+        addIssue(issues, 'warn', file, t.suspiciousTitle(title))
       }
       if (data.type !== undefined && data.type !== 'index') {
-        addIssue(issues, 'error', file, `unsupported type: ${data.type}`)
+        addIssue(issues, 'error', file, t.unsupportedType(data.type))
       }
       if (slugCounts.get(slug) > 1) {
-        addIssue(issues, 'error', file, `duplicate slug after normalization: ${slug}`)
+        addIssue(issues, 'error', file, t.duplicateSlug(slug))
       }
       if (data.type === 'index' && data.parent) {
-        addIssue(issues, 'error', file, 'type: index cannot declare parent')
+        addIssue(issues, 'error', file, t.typeIndexCannotDeclareParent)
       }
       if (data.parent) {
         const parentPosts = postsBySlug.get(data.parent) ?? []
         if (data.parent === slug) {
-          addIssue(issues, 'error', file, `parent cannot reference itself: ${data.parent}`)
+          addIssue(issues, 'error', file, t.parentCannotReferenceItself(data.parent))
         } else if (parentPosts.length === 0) {
-          addIssue(issues, 'error', file, `missing parent: ${data.parent}`)
+          addIssue(issues, 'error', file, t.missingParent(data.parent))
         } else if (!parentPosts.some((post) => post.data.type === 'index')) {
-          addIssue(issues, 'error', file, `parent must reference type: index post: ${data.parent}`)
+          addIssue(issues, 'error', file, t.parentMustReferenceIndex(data.parent))
         }
       }
     }
@@ -301,7 +366,7 @@ async function main() {
     if (checks.wikiLinks) {
       for (const target of extractWikiLinks(markdownBody)) {
         if (!knownSlugs.has(target)) {
-          addIssue(issues, 'error', file, `broken wiki link: [[${target}]]`)
+          addIssue(issues, 'error', file, t.brokenWikiLink(target))
         }
       }
     }
@@ -309,36 +374,36 @@ async function main() {
     const directiveTypes = [directives.audio && 'audio', directives.youtube && 'youtube'].filter(Boolean)
     if (checks.media) {
       if (data.media !== undefined) {
-        addIssue(issues, 'fixable', file, 'legacy media frontmatter should be removed')
+        addIssue(issues, 'fixable', file, t.legacyMedia)
         delete data.media
         dirty = true
       }
       if (directiveTypes.length > 1) {
-        addIssue(issues, 'error', file, 'audio and youtube directives cannot be used together')
+        addIssue(issues, 'error', file, t.audioAndYoutubeDirectives)
       } else if (mediaDirectives.length > 1) {
-        addIssue(issues, 'error', file, 'multiple media directives are not supported')
+        addIssue(issues, 'error', file, t.multipleMediaDirectives)
       } else if (mediaDirectives.length === 1) {
         const directive = mediaDirectives[0]
         if (directive.type === 'youtube') {
           if (!directive.id || !YOUTUBE_ID_RE.test(directive.id)) {
-            addIssue(issues, 'error', file, `invalid YouTube id: ${directive.id ?? '<missing>'}`)
+            addIssue(issues, 'error', file, t.invalidYouTubeId(directive.id ?? '<missing>'))
           } else if (data.audioSrc) {
-            addIssue(issues, 'error', file, 'youtubeId and audioSrc cannot be used together')
+            addIssue(issues, 'error', file, t.youtubeAndAudioSrc)
           } else {
-            addIssue(issues, 'fixable', file, 'migrate youtube directive to youtubeId frontmatter')
+            addIssue(issues, 'fixable', file, t.migrateYouTube)
             data.youtubeId = data.youtubeId ?? directive.id
             parts.body = removeDirective(parts.body, directive)
             dirty = true
           }
         } else if (directive.type === 'audio') {
           if (!directive.src || !isSafeAudioSrc(directive.src)) {
-            addIssue(issues, 'error', file, `invalid audio src: ${directive.src ?? '<missing>'}`)
+            addIssue(issues, 'error', file, t.invalidAudioSrc(directive.src ?? '<missing>'))
           } else if (!directive.title?.trim() && !data.audioTitle?.trim()) {
-            addIssue(issues, 'error', file, 'audioTitle required')
+            addIssue(issues, 'error', file, t.audioTitleRequired)
           } else if (data.youtubeId) {
-            addIssue(issues, 'error', file, 'youtubeId and audioSrc cannot be used together')
+            addIssue(issues, 'error', file, t.youtubeAndAudioSrc)
           } else {
-            addIssue(issues, 'fixable', file, 'migrate audio directive to audioSrc/audioTitle frontmatter')
+            addIssue(issues, 'fixable', file, t.migrateAudio)
             data.audioSrc = data.audioSrc ?? directive.src
             data.audioTitle = data.audioTitle ?? directive.title.trim()
             parts.body = removeDirective(parts.body, directive)
@@ -347,25 +412,25 @@ async function main() {
         }
       }
       if (data.youtubeId && data.audioSrc) {
-        addIssue(issues, 'error', file, 'youtubeId and audioSrc cannot be used together')
+        addIssue(issues, 'error', file, t.youtubeAndAudioSrc)
       }
       if (data.youtubeId && !YOUTUBE_ID_RE.test(data.youtubeId)) {
-        addIssue(issues, 'error', file, `invalid YouTube id: ${data.youtubeId}`)
+        addIssue(issues, 'error', file, t.invalidYouTubeId(data.youtubeId))
       }
       if (data.audioSrc && !isSafeAudioSrc(data.audioSrc)) {
-        addIssue(issues, 'error', file, `invalid audio src: ${data.audioSrc}`)
+        addIssue(issues, 'error', file, t.invalidAudioSrc(data.audioSrc))
       }
       if (data.audioSrc && !data.audioTitle?.trim()) {
-        addIssue(issues, 'error', file, 'audioTitle required')
+        addIssue(issues, 'error', file, t.audioTitleRequired)
       }
       if (!data.audioSrc && data.audioTitle !== undefined) {
-        addIssue(issues, 'error', file, 'audioTitle requires audioSrc')
+        addIssue(issues, 'error', file, t.audioTitleRequiresAudioSrc)
       }
     }
 
     if (checks.encoding) {
       if (INVISIBLE_TEXT_RE.test(source)) {
-        addIssue(issues, 'fixable', file, 'invisible zero-width characters should be removed')
+        addIssue(issues, 'fixable', file, t.invisibleText)
         parts.matter = parts.matter === null ? null : removeInvisibleText(parts.matter)
         parts.body = removeInvisibleText(parts.body)
         dirty = true
@@ -373,26 +438,26 @@ async function main() {
       INVISIBLE_TEXT_RE.lastIndex = 0
 
       if (SUSPICIOUS_ENCODING_TOKENS.some((token) => source.includes(token))) {
-        addIssue(issues, 'warn', file, 'possible broken encoding')
+        addIssue(issues, 'warn', file, t.possibleBrokenEncoding)
       }
     }
 
     if (MODE === 'fix' && dirty) {
       await writeFile(file, applyFixes(source, data, parts), 'utf8')
       changed++
-      console.log(`fixed ${rel}`)
+      console.log(t.fixedFile(rel))
     }
   }
 
   if (issues.length === 0) {
-    console.log(MODE === 'fix' ? 'content doctor: no issues found' : 'content doctor: clean')
+    console.log(MODE === 'fix' ? t.noIssuesFound : t.clean)
     return
   }
 
   for (const issue of issues) {
     console.log(`[${issue.severity}] ${relative(ROOT, issue.file)} - ${issue.message}`)
   }
-  if (MODE === 'fix') console.log(`changed files: ${changed}`)
+  if (MODE === 'fix') console.log(t.changedFiles(changed))
 
   if (issues.some((issue) => issue.severity === 'error' || (MODE === 'check' && issue.severity === 'fixable'))) {
     exit(1)
